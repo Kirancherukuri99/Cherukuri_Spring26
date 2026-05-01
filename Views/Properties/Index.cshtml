@@ -1,0 +1,229 @@
+﻿@model IEnumerable<Cherukuri_Spring26.Models.Property>
+@{
+    ViewData["Title"] = "Properties";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    .page-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+    .page-header p {
+        margin: 0.25rem 0 0;
+        opacity: 0.75;
+        font-size: 0.95rem;
+    }
+    .search-bar {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .search-bar input {
+        flex: 1;
+        min-width: 200px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+    }
+    .search-bar input:focus {
+        outline: none;
+        border-color: #0f3460;
+        box-shadow: 0 0 0 3px rgba(15,52,96,0.15);
+    }
+    .btn-search {
+        background: #0f3460;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-search:hover { background: #16213e; color: white; }
+    .btn-clear {
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-clear:hover { background: #5a6268; color: white; }
+    .card-table {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    .table {
+        margin: 0;
+    }
+    .table thead th {
+        background: #0f3460;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 1.25rem;
+        border: none;
+    }
+    .table tbody tr {
+        transition: background 0.15s;
+    }
+    .table tbody tr:hover {
+        background: #f0f4ff;
+    }
+    .table tbody td {
+        padding: 0.9rem 1.25rem;
+        vertical-align: middle;
+        border-color: #f0f0f0;
+        font-size: 0.95rem;
+    }
+    .price-badge {
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 0.3rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+    .btn-action {
+        padding: 0.35rem 0.85rem;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0.1rem;
+        transition: all 0.2s;
+    }
+    .btn-details { background: #17a2b8; color: white; }
+    .btn-details:hover { background: #138496; color: white; }
+    .btn-edit { background: #ffc107; color: #212529; }
+    .btn-edit:hover { background: #e0a800; color: #212529; }
+    .btn-delete { background: #dc3545; color: white; }
+    .btn-delete:hover { background: #c82333; color: white; }
+    .btn-add {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.2s;
+    }
+    .btn-add:hover { background: #218838; color: white; }
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+    .no-results i { font-size: 3rem; display: block; margin-bottom: 1rem; }
+</style>
+
+<div class="page-header">
+    <h1>🏠 Properties</h1>
+    <p>Manage all property listings</p>
+</div>
+
+@if (User.IsInRole("Admin") || User.IsInRole("Owner"))
+{
+    <div class="mb-3">
+        <a asp-action="Create" class="btn-add">+ Add New Property</a>
+    </div>
+}
+
+<div class="search-bar">
+    <input type="text" id="searchInput" placeholder="🔍  Search by address, city, state or zip..." onkeyup="searchTable()" />
+    <button class="btn-search" onclick="searchTable()">Search</button>
+    <button class="btn-clear" onclick="clearSearch()">Clear</button>
+</div>
+
+<div class="card-table">
+    <table class="table table-hover" id="propertiesTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Full Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Zip Code</th>
+                <th>Listing Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int count = 1;
+            }
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@count</td>
+                    <td><strong>@item.Address</strong></td>
+                    <td>@item.City</td>
+                    <td>@item.State</td>
+                    <td>@item.ZipCode</td>
+                    <td><span class="price-badge">@item.ListingPrice.ToString("C")</span></td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.PropertyID" class="btn-action btn-details">Details</a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Owner"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.PropertyID" class="btn-action btn-edit">Edit</a>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-action="Delete" asp-route-id="@item.PropertyID" class="btn-action btn-delete">Delete</a>
+                        }
+                    </td>
+                </tr>
+                count++;
+            }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div class="no-results">
+            <span>🏚️</span>
+            <p>No properties found.</p>
+        </div>
+    }
+</div>
+
+<script>
+    function searchTable() {
+        var input = document.getElementById("searchInput").value.toLowerCase();
+        var rows = document.querySelectorAll("#propertiesTable tbody tr");
+        rows.forEach(function (row) {
+            var text = row.innerText.toLowerCase();
+            row.style.display = text.includes(input) ? "" : "none";
+        });
+    }
+    function clearSearch() {
+        document.getElementById("searchInput").value = "";
+        searchTable();
+    }
+</script>
